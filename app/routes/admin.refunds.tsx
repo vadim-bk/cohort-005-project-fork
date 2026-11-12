@@ -22,6 +22,7 @@ import {
 } from "~/lib/refunds.server";
 import { RULE_BREAK_LABELS } from "~/lib/refund-rules";
 import { sendEmail } from "~/lib/mailer.server";
+import { buildRefundDecided, knockNotifier } from "~/lib/prototype-notifier.server";
 
 const refundFilterSchema = z
   .nativeEnum(RefundStatus)
@@ -128,6 +129,10 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   await sendEmail(result.email);
+
+  // PROTOTYPE: one real Notification through Knock.
+  const notification = buildRefundDecided(refundRequestId, platformAdmin);
+  if (notification) await knockNotifier().refundDecided(notification);
 
   return {
     success: true,
